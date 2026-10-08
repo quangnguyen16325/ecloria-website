@@ -89,6 +89,40 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const visual = document.querySelector<HTMLElement>(".hero-visual");
+    const stage = visual?.querySelector<HTMLElement>(".visual-stage");
+    if (!visual || !stage || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let frame = 0;
+    let pointerX = 0;
+    let pointerY = 0;
+    const render = () => {
+      frame = 0;
+      stage.style.setProperty("--pointer-x", `${pointerX}px`);
+      stage.style.setProperty("--pointer-y", `${pointerY}px`);
+    };
+    const move = (event: PointerEvent) => {
+      const bounds = visual.getBoundingClientRect();
+      pointerX = ((event.clientX - bounds.left) / bounds.width - 0.5) * 12;
+      pointerY = ((event.clientY - bounds.top) / bounds.height - 0.5) * 12;
+      if (!frame) frame = window.requestAnimationFrame(render);
+    };
+    const reset = () => {
+      pointerX = 0;
+      pointerY = 0;
+      if (!frame) frame = window.requestAnimationFrame(render);
+    };
+
+    visual.addEventListener("pointermove", move);
+    visual.addEventListener("pointerleave", reset);
+    return () => {
+      visual.removeEventListener("pointermove", move);
+      visual.removeEventListener("pointerleave", reset);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  useEffect(() => {
     const renderTurnstile = () => {
       const container = document.querySelector<HTMLElement>(".cf-turnstile");
       if (!container || !window.turnstile || turnstileWidget.current) return;
@@ -190,22 +224,31 @@ function App() {
             </div>
 
             <div className="hero-visual" aria-hidden="true" data-reveal="fade">
-              <div className="orbit orbit-one" />
-              <div className="orbit orbit-two" />
-              <div className="signal-card card-top">
-                <Sparkles size={18} />
-                <span>Ideas</span>
-                <strong>clarified</strong>
+              <div className="visual-stage">
+                <div className="visual-grid" />
+                <div className="orbit orbit-one" />
+                <div className="orbit orbit-two" />
+                <div className="orbit orbit-three" />
+                <div className="signal-trail trail-one"><span /></div>
+                <div className="signal-trail trail-two"><span /></div>
+                <div className="core-aura" />
+                <div className="signal-card card-top">
+                  <Sparkles size={18} />
+                  <span>Ideas</span>
+                  <strong>clarified</strong>
+                </div>
+                <div className="signal-card card-bottom">
+                  <Layers3 size={18} />
+                  <span>Products</span>
+                  <strong>engineered</strong>
+                </div>
+                <div className="visual-status"><i /> Signal online <span>01 / 03</span></div>
+                <div className="core-mark"><span>e</span><i className="core-crosshair" /></div>
+                <div className="pulse-dot dot-a" />
+                <div className="pulse-dot dot-b" />
+                <div className="pulse-dot dot-c" />
+                <div className="pulse-dot dot-d" />
               </div>
-              <div className="signal-card card-bottom">
-                <Layers3 size={18} />
-                <span>Products</span>
-                <strong>engineered</strong>
-              </div>
-              <div className="core-mark"><span>e</span></div>
-              <div className="pulse-dot dot-a" />
-              <div className="pulse-dot dot-b" />
-              <div className="pulse-dot dot-c" />
             </div>
           </div>
           <div className="hero-foot" data-reveal="fade">

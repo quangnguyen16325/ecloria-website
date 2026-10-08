@@ -47,7 +47,7 @@ const approach = [
 function Logo() {
   return (
     <a className="logo" href="#top" aria-label="Ecloria home">
-      <span className="logo-mark" aria-hidden="true"><span /></span>
+      <img className="logo-mark" src="/brand-mark.svg" alt="" aria-hidden="true" />
       <span>Ecloria</span>
     </a>
   );

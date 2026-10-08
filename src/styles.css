@@ -25,8 +25,7 @@ button { cursor: pointer; }
 .site-header { position: absolute; z-index: 20; top: 0; left: 0; width: 100%; color: #fff; }
 .nav-wrap { height: 92px; max-width: 1440px; margin: auto; display: flex; align-items: center; justify-content: space-between; padding: 0 max(5vw, 24px); }
 .logo { display: inline-flex; gap: 11px; align-items: center; font: 600 1.28rem "Manrope"; letter-spacing: -0.04em; }
-.logo-mark { width: 29px; height: 29px; border: 1px solid currentColor; border-radius: 50%; display: grid; place-items: center; }
-.logo-mark span { width: 12px; height: 7px; border: solid currentColor; border-width: 1.5px 0; }
+.logo-mark { width: 29px; height: 29px; display: block; flex: 0 0 auto; }
 .nav-links { display: flex; align-items: center; gap: clamp(24px, 3vw, 48px); font-size: 0.88rem; }
 .nav-links > a:not(.nav-cta) { opacity: 0.72; transition: opacity .2s; }
 .nav-links > a:hover { opacity: 1; }

@@ -138,6 +138,7 @@ function App() {
         <div className="nav-wrap">
           <Logo />
           <nav className={menuOpen ? "nav-links open" : "nav-links"} aria-label="Main navigation">
+            <a href="#product" onClick={() => setMenuOpen(false)}>Product</a>
             <a href="#services" onClick={() => setMenuOpen(false)}>What we do</a>
             <a href="#approach" onClick={() => setMenuOpen(false)}>How we work</a>
             <a href="#about" onClick={() => setMenuOpen(false)}>About</a>
@@ -155,7 +156,7 @@ function App() {
         <section className="hero section-pad">
           <div className="hero-grid">
             <div className="hero-copy">
-              <div className="eyebrow"><span /> UK software & AI studio</div>
+              <div className="eyebrow"><span /> Vietnam-based software & AI studio</div>
               <h1>Technology that<br />moves ideas <em>forward.</em></h1>
               <p className="hero-lead">
                 We design and build intelligent software for ambitious teams — from first concept to dependable, scalable product.
@@ -208,6 +209,33 @@ function App() {
           </div>
         </section>
 
+        <section className="product-focus section-pad" id="product">
+          <div className="product-focus-heading">
+            <div>
+              <div className="section-kicker">What we are building</div>
+              <h2>Practical AI for the work that matters.</h2>
+            </div>
+            <p>
+              Ecloria is shaping a focused AI workspace for small and mid-sized teams — helping people understand information, automate repeatable work and keep human judgement at the centre.
+            </p>
+          </div>
+          <div className="product-grid">
+            <article className="product-panel product-panel-main">
+              <div className="product-label"><span>01</span><span>Product direction</span></div>
+              <h3>From documents to useful decisions.</h3>
+              <p>
+                We are prototyping Claude-powered workflows for document summarisation, internal knowledge and business automation. The first release is designed to be small, observable and easy for a team to trust.
+              </p>
+              <div className="product-status"><span>Stage</span><strong>Prototype → early pilots</strong></div>
+            </article>
+            <div className="product-tracks">
+              <div className="product-track"><span>01</span><div><strong>Understand</strong><p>Turn long documents and internal knowledge into clear, reviewable summaries.</p></div></div>
+              <div className="product-track"><span>02</span><div><strong>Assist</strong><p>Give teams a helpful starting point for support, research and technical work.</p></div></div>
+              <div className="product-track"><span>03</span><div><strong>Automate</strong><p>Connect repeatable workflows without removing people from important decisions.</p></div></div>
+            </div>
+          </div>
+        </section>
+
         <section className="services section-pad" id="services">
           <div className="section-heading">
             <div>
@@ -242,6 +270,18 @@ function App() {
                 <p>{copy}</p>
               </div>
             ))}
+          </div>
+        </section>
+
+        <section className="responsible-ai section-pad" id="responsible-ai">
+          <div className="section-kicker light">Responsible by design</div>
+          <div className="responsible-grid">
+            <h2>Useful AI with human judgement at the centre.</h2>
+            <div className="principle-list">
+              <div><span>01</span><div><h3>Human review</h3><p>Outputs are designed to be checked before they reach a customer or influence an important decision.</p></div></div>
+              <div><span>02</span><div><h3>Data minimisation</h3><p>We aim to keep only the information needed to deliver a useful, secure workflow.</p></div></div>
+              <div><span>03</span><div><h3>Observable systems</h3><p>Clear logs, access controls and measurable feedback help us improve the product responsibly.</p></div></div>
+            </div>
           </div>
         </section>
 
@@ -289,12 +329,12 @@ function App() {
           <Logo />
           <p>Thoughtful software.<br />Intelligently built.</p>
           <div className="footer-links">
-            <a href="#services">Services</a><a href="#approach">Approach</a><a href="#about">About</a><a href="#contact">Contact</a><a href="/privacy">Privacy policy</a>
+            <a href="#product">Product direction</a><a href="#services">Services</a><a href="#approach">Approach</a><a href="#responsible-ai">Responsible AI</a><a href="#about">About</a><a href="#contact">Contact</a><a href="/privacy">Privacy policy</a><a href="/terms">Terms of use</a>
           </div>
         </div>
         <div className="footer-bottom">
           <span>© {new Date().getFullYear()} Ecloria Ltd.</span>
-          <span>United Kingdom</span>
+          <span>Da Nang, Vietnam · Serving teams worldwide</span>
           <a href="#top">Back to top ↑</a>
         </div>
       </footer>

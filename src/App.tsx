@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 
+const TURNSTILE_SITEKEY = "0x4AAAAAAFRiEA6Nr1CiiV5Y";
+
 const services = [
   {
     number: "01",
@@ -78,9 +80,11 @@ function App() {
       const result = (await response.json()) as { error?: string };
       if (!response.ok) throw new Error(result.error || "Unable to send your message.");
       form.reset();
+      window.turnstile?.reset();
       setFormState("sent");
       setFormMessage("Thanks — your message is with us. We'll reply shortly.");
     } catch (error) {
+      window.turnstile?.reset();
       setFormState("error");
       setFormMessage(error instanceof Error ? error.message : "Unable to send your message.");
     }
@@ -225,6 +229,9 @@ function App() {
             <label>Company <span>(optional)</span><input name="company" placeholder="Company name" /></label>
             <label>What can we help with?<textarea name="message" required minLength={10} rows={4} placeholder="A little about your idea, challenge or goal..." /></label>
             <input className="honeypot" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+            <div className="turnstile-wrap" aria-label="Security verification">
+              <div className="cf-turnstile" data-sitekey={TURNSTILE_SITEKEY} data-action="contact" />
+            </div>
             <div className="form-footer">
               <button className="button button-accent" type="submit" disabled={formState === "sending"}>
                 {formState === "sending" ? "Sending…" : "Send enquiry"} <ArrowRight size={18} />

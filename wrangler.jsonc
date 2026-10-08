@@ -13,6 +13,9 @@
     "logs": { "enabled": true, "head_sampling_rate": 1 },
     "traces": { "enabled": true, "head_sampling_rate": 0.01 }
   },
+  "vars": {
+    "TURNSTILE_HOSTNAMES": "ecloria.co.uk,localhost,127.0.0.1"
+  },
   "d1_databases": [
     {
       "binding": "DB",

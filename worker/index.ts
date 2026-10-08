@@ -4,6 +4,12 @@ type ContactPayload = {
   company?: unknown;
   message?: unknown;
   website?: unknown;
+  "cf-turnstile-response"?: unknown;
+};
+
+type WorkerEnv = Env & {
+  TURNSTILE_SECRET?: string;
+  TURNSTILE_HOSTNAMES?: string;
 };
 
 const json = (body: unknown, status = 200) =>
@@ -19,8 +25,50 @@ function clean(value: unknown, max: number): string {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 }
 
+async function verifyTurnstile(request: Request, token: string, env: WorkerEnv): Promise<boolean> {
+  const hostnames = new Set(
+    (env.TURNSTILE_HOSTNAMES ?? "")
+      .split(",")
+      .map((hostname) => hostname.trim().toLowerCase())
+      .filter(Boolean),
+  );
+
+  if (!env.TURNSTILE_SECRET || !token || token.length > 2048 || hostnames.size === 0) {
+    return false;
+  }
+
+  try {
+    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        secret: env.TURNSTILE_SECRET,
+        response: token,
+        remoteip: request.headers.get("CF-Connecting-IP") ?? "",
+      }),
+      signal: AbortSignal.timeout(10_000),
+    });
+
+    if (!response.ok) return false;
+
+    const result = (await response.json()) as {
+      success?: boolean;
+      action?: string;
+      hostname?: string;
+    };
+
+    return (
+      result.success === true &&
+      result.action === "contact" &&
+      hostnames.has((result.hostname ?? "").toLowerCase())
+    );
+  } catch {
+    return false;
+  }
+}
+
 export default {
-  async fetch(request, env): Promise<Response> {
+  async fetch(request, env: WorkerEnv): Promise<Response> {
     const url = new URL(request.url);
 
     if (url.pathname === "/api/health" && request.method === "GET") {
@@ -36,6 +84,11 @@ export default {
       payload = (await request.json()) as ContactPayload;
     } catch {
       return json({ error: "Invalid request body." }, 400);
+    }
+
+    const turnstileToken = clean(payload["cf-turnstile-response"], 2048);
+    if (!(await verifyTurnstile(request, turnstileToken, env))) {
+      return json({ error: "Please complete the security verification." }, 403);
     }
 
     if (clean(payload.website, 200)) {
@@ -70,4 +123,4 @@ export default {
       return json({ error: "Something went wrong. Please try again." }, 500);
     }
   },
-} satisfies ExportedHandler<Env>;
+} satisfies ExportedHandler<WorkerEnv>;

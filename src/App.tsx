@@ -9,7 +9,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 const TURNSTILE_SITEKEY = "0x4AAAAAAFRiEA6Nr1CiiV5Y";
 
@@ -57,6 +57,8 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [formState, setFormState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [formMessage, setFormMessage] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const turnstileWidget = useRef<string | null>(null);
 
   useEffect(() => {
     const close = () => setMenuOpen(false);
@@ -64,29 +66,69 @@ function App() {
     return () => window.removeEventListener("resize", close);
   }, []);
 
+  useEffect(() => {
+    const renderTurnstile = () => {
+      const container = document.querySelector<HTMLElement>(".cf-turnstile");
+      if (!container || !window.turnstile || turnstileWidget.current) return;
+
+      turnstileWidget.current = window.turnstile.render(container, {
+        sitekey: TURNSTILE_SITEKEY,
+        action: "contact",
+        callback: (token) => setTurnstileToken(token),
+        "expired-callback": () => setTurnstileToken(""),
+        "error-callback": () => setTurnstileToken(""),
+      });
+    };
+
+    renderTurnstile();
+    const retryTimer = window.setInterval(renderTurnstile, 250);
+    return () => window.clearInterval(retryTimer);
+  }, []);
+
   async function submitContact(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormState("sending");
     setFormMessage("");
     const form = event.currentTarget;
-    const payload = Object.fromEntries(new FormData(form).entries());
+    if (!turnstileToken) {
+      setFormState("error");
+      setFormMessage("Please complete the security verification.");
+      return;
+    }
+
+    const formData = new FormData(form);
+    formData.set("cf-turnstile-response", turnstileToken);
+    const payload = Object.fromEntries(formData.entries());
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 15_000);
 
     try {
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
+        signal: controller.signal,
       });
       const result = (await response.json()) as { error?: string };
       if (!response.ok) throw new Error(result.error || "Unable to send your message.");
       form.reset();
       window.turnstile?.reset();
+      setTurnstileToken("");
       setFormState("sent");
       setFormMessage("Thanks — your message is with us. We'll reply shortly.");
     } catch (error) {
       window.turnstile?.reset();
+      setTurnstileToken("");
       setFormState("error");
-      setFormMessage(error instanceof Error ? error.message : "Unable to send your message.");
+      setFormMessage(
+        error instanceof DOMException && error.name === "AbortError"
+          ? "The request timed out. Please try again."
+          : error instanceof Error
+            ? error.message
+            : "Unable to send your message.",
+      );
+    } finally {
+      window.clearTimeout(timeout);
     }
   }
 

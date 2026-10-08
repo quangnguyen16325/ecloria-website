@@ -156,6 +156,11 @@ export default {
   async fetch(request, env: WorkerEnv): Promise<Response> {
     const url = new URL(request.url);
 
+    if ((request.method === "GET" || request.method === "HEAD") && url.hostname === "www.ecloria.co.uk") {
+      url.hostname = "ecloria.co.uk";
+      return Response.redirect(url.toString(), 301);
+    }
+
     if (url.pathname === "/api/health" && request.method === "GET") {
       return json({ ok: true, service: "ecloria-web" });
     }

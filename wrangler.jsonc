@@ -8,6 +8,10 @@
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"]
   },
+  "routes": [
+    { "pattern": "ecloria.co.uk", "custom_domain": true },
+    { "pattern": "www.ecloria.co.uk", "custom_domain": true }
+  ],
   "observability": {
     "enabled": true,
     "logs": { "enabled": true, "head_sampling_rate": 1 },

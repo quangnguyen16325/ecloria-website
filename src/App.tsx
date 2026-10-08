@@ -289,7 +289,7 @@ function App() {
           <Logo />
           <p>Thoughtful software.<br />Intelligently built.</p>
           <div className="footer-links">
-            <a href="#services">Services</a><a href="#approach">Approach</a><a href="#about">About</a><a href="#contact">Contact</a>
+            <a href="#services">Services</a><a href="#approach">Approach</a><a href="#about">About</a><a href="#contact">Contact</a><a href="/privacy">Privacy policy</a>
           </div>
         </div>
         <div className="footer-bottom">

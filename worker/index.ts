@@ -10,6 +10,9 @@ type ContactPayload = {
 type WorkerEnv = Env & {
   TURNSTILE_SECRET?: string;
   TURNSTILE_HOSTNAMES?: string;
+  RESEND_API_KEY?: string;
+  CONTACT_NOTIFICATION_TO?: string;
+  CONTACT_NOTIFICATION_FROM?: string;
 };
 
 const json = (body: unknown, status = 200) =>
@@ -23,6 +26,88 @@ const json = (body: unknown, status = 200) =>
 
 function clean(value: unknown, max: number): string {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
+}
+
+function escapeHtml(value: string): string {
+  return value.replace(
+    /[&<>"']/g,
+    (character) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      })[character] ?? character,
+  );
+}
+
+async function sendContactNotification(
+  env: WorkerEnv,
+  contact: { name: string; email: string; company: string; message: string },
+): Promise<void> {
+  if (!env.RESEND_API_KEY) {
+    console.log(JSON.stringify({ event: "contact_notification_skipped", reason: "missing_secret" }));
+    return;
+  }
+
+  const destination = env.CONTACT_NOTIFICATION_TO ?? "shinwang72.dev@ecloria.co.uk";
+  const sender = env.CONTACT_NOTIFICATION_FROM ?? "hello@ecloria.co.uk";
+  const safeName = contact.name.replace(/[\r\n]+/g, " ").slice(0, 100);
+  const html = `
+    <h2>New Ecloria enquiry</h2>
+    <p><strong>Name:</strong> ${escapeHtml(contact.name)}</p>
+    <p><strong>Email:</strong> ${escapeHtml(contact.email)}</p>
+    <p><strong>Company:</strong> ${escapeHtml(contact.company || "-")}</p>
+    <p><strong>Message:</strong></p>
+    <p>${escapeHtml(contact.message).replace(/\n/g, "<br>")}</p>
+  `;
+
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: sender,
+        to: [destination],
+        reply_to: contact.email,
+        subject: `New Ecloria enquiry from ${safeName}`,
+        text: [
+          "New Ecloria enquiry",
+          `Name: ${contact.name}`,
+          `Email: ${contact.email}`,
+          `Company: ${contact.company || "-"}`,
+          "",
+          contact.message,
+        ].join("\n"),
+        html,
+      }),
+      signal: AbortSignal.timeout(10_000),
+    });
+
+    if (!response.ok) {
+      console.error(
+        JSON.stringify({
+          event: "contact_notification_failed",
+          status: response.status,
+          detail: (await response.text()).slice(0, 500),
+        }),
+      );
+      return;
+    }
+
+    console.log(JSON.stringify({ event: "contact_notification_sent" }));
+  } catch (error) {
+    console.error(
+      JSON.stringify({
+        event: "contact_notification_failed",
+        reason: error instanceof Error ? error.message : "unknown",
+      }),
+    );
+  }
 }
 
 async function verifyTurnstile(request: Request, token: string, env: WorkerEnv): Promise<boolean> {
@@ -111,6 +196,7 @@ export default {
         .bind(crypto.randomUUID(), name, email, company || null, message)
         .run();
 
+      await sendContactNotification(env, { name, email, company, message });
       console.log(JSON.stringify({ event: "contact_created", domain: email.split("@")[1] }));
       return json({ ok: true });
     } catch (error) {

@@ -14,7 +14,9 @@
     "traces": { "enabled": true, "head_sampling_rate": 0.01 }
   },
   "vars": {
-    "TURNSTILE_HOSTNAMES": "ecloria.co.uk,localhost,127.0.0.1"
+    "TURNSTILE_HOSTNAMES": "ecloria.co.uk,localhost,127.0.0.1",
+    "CONTACT_NOTIFICATION_TO": "shinwang72.dev@ecloria.co.uk",
+    "CONTACT_NOTIFICATION_FROM": "hello@ecloria.co.uk"
   },
   "d1_databases": [
     {
